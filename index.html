@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+	<head>
+		<title>TTQ</title>
+		<meta http-equiv='Content-Type' content='text/html; charset=utf8'>
+		<link rel='shortcut icon' href='favicon.ico'>
+		<link rel="stylesheet" type="text/css" href="css/default.css" />
+		<script src="js/jquery.js" language="javascript"></script>
+		<script src="js/game-base.js" language="javascript"></script>
+		<script src="js/game-chars.js" language="javascript"></script>
+		<script src="js/game-events.js" language="javascript"></script>
+		<script src="js/game-map.js" language="javascript"></script>
+		<script src="js/game-player.js" language="javascript"></script>
+		<script src="js/game-menu.js" language="javascript"></script>
+		<script src="js/game-levelmenu.js" language="javascript"></script>
+		<script src="js/game-bonus.js" language="javascript"></script>
+		<script src="js/game-gensokyoMap.js" language="javascript"></script>
+		<script src='data/loc_ru.js' language="javascript"></script>
+		<script src="js/kinetic.js" language="javascript"></script>
+		<script>
+			window.onload = function() {
+				game.init('game-dispay', 640, 480);
+			}     	
+		</script>
+	</head>
+	<body>
+		<div class='container a-center'>
+			<div id="status-block">
+				<div id="logo">TTQ — Touhou Tactic Quest</div>
+				<img src="i/ajax-loader.gif"/ id="loader-animation">
+				<div id="status-text">
+					Для запуска из папки  лучше всего подходит FireFox </br>
+					Попробуйте перенести файлы на localhost или зайдите по <a href="http://onni.jrudelphi.org/ttq">ссылке</a>.
+				</div>
+			</div>
+			<div id="game-dispay"></div>
+		</div>
+	</body>
+</html>
