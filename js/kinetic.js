@@ -3390,7 +3390,7 @@ Kinetic.Shape = Kinetic.Node.extend({
             if( typeof fill == 'string') {
                 f = this.attrs.fill;
                 context.fillStyle = f;
-                context.fill(context);
+                context.fill(/*context*/);
             }
             // pattern
             else if(fill.image) {
