@@ -173,7 +173,7 @@ gameMap.prototype.showCells = function(parent) {
 
 			rect.cellX = i;
 			rect.cellY = j;
-			rect.on('click', function() {
+			rect.on('click tap', function() {
 				game.map.cellClick(this.cellX, this.cellY);
 			});
 		}
@@ -364,8 +364,8 @@ gameMap.prototype.cellClick = function(x, y) {
 	pos.x += game.map.tileSize/4;
 	pos.y -= game.map.tileSize*0.8;
 	var menu = {};
-	var itemHeight = 18;
-	var itemWidth = 120;
+	var itemHeight = game.ui.size.actMenuHeght;
+	var itemWidth = game.ui.size.actMenuWidth;
 
 	var menuGroup = new Kinetic.Group({
 		x: pos.x,
@@ -381,7 +381,7 @@ gameMap.prototype.cellClick = function(x, y) {
 		alpha: 0.3,
 	});
 
-	bgRect.on('click', function() {
+	bgRect.on('click tap', function() {
 		menuGroup.removeChildren();
 		menuGroup.parent.remove(menuGroup);
 		game.getLayer(2).draw();
@@ -504,7 +504,7 @@ gameMap.prototype.cellClick = function(x, y) {
 				game.getLayer(2).draw();
 				break;
 		}
-		item.viewRect.on('click', itemHandler);
+		item.viewRect.on('click tap', itemHandler);
 		item.viewText = new Kinetic.Text({
 			listening: false,
 			x:4,

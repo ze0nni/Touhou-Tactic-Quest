@@ -68,6 +68,10 @@ if (typeof game==='undefined') {
 }
 
 game.ui = {
+	size: {
+		actMenuHeght:32,
+		actMenuWidth:140
+	},
 	color : {
 		control: '#222',
 		text: '#fff',
@@ -109,6 +113,10 @@ game.init = function(parent, width, height) {
 		game.kineticStage.onFrame(function () {
 			if (game.onFrame) game.onFrame();
 		})
+		
+		//game.animation = new Kinetic.Animation(function (frame) {
+		//	if (game.onFrame) game.onFrame();
+		//} );
 
 		//три слоя
 		game.clearLayers(4);
@@ -117,6 +125,8 @@ game.init = function(parent, width, height) {
 		//game.map.setSize(13, 11);
 		//game.map.showCells();
 		game.kineticStage.start();
+		
+		//game.animation.start();
 
 		//загружаем всех персонажей
 		loadCharacters(function() {
@@ -280,7 +290,7 @@ game.newGame = function() {
 			player.add(char);
 			board[i][j] = char;
 			char.setXY(i,j);
-			char.sprite.on('click', (function(){
+			char.sprite.on('click tap', (function(){
 				game.map.characterClick(this);
 			}).bind(board[i][j]));
 		}
@@ -385,7 +395,7 @@ game.startBattle = function(mapData, mapName) {
 			player.add(char);
 			board[i][j] = char;
 			char.setXY(i,j);
-			char.sprite.on('click', (function(){
+			char.sprite.on('click tap', (function(){
 				game.map.characterClick(this);
 			}).bind(board[i][j]));
 		}

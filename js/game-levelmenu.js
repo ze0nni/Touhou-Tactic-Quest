@@ -1,7 +1,7 @@
 
 
 function levelMenu() {
-	game.onFrame = this.onFrame();
+	game.onFrame = this.onFrame;
 	this.viewGroup = new Kinetic.Group({
 	});
 	this.viewBgGroup = new Kinetic.Group({
@@ -84,7 +84,7 @@ levelMenu.prototype.updateView = function() {
 		slot.viewRect.slot = slot;
 		slot.viewRect.bonus = bonus;
 		var menu = this;
-		slot.viewRect.on('click', function() {
+		slot.viewRect.on('click tap', function() {
 			if (this.bonus.price>game.savesSlot.money) {
 				alert(format('no money'));
 				return;
@@ -178,7 +178,7 @@ levelMenu.prototype.updateView = function() {
 		format('back')
 	);
 	var menu = this;
-	this.btnMenu.viewRect.on('click', function() {
+	this.btnMenu.viewRect.on('click tap', function() {
 		menu.remove();
 		new gameMenu();
 	});
@@ -190,7 +190,7 @@ levelMenu.prototype.updateView = function() {
 		210, 50,
 		format('fight')
 	);
-	this.btnFight.viewRect.on('click', function() {
+	this.btnFight.viewRect.on('click tap', function() {
 		menu.remove();
 		new gensokyoMap();
 	});

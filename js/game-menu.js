@@ -12,7 +12,8 @@ function gameMenu(items) {
 		}},
 	];
 	//
-	game.onFrame = this.onFrame();
+	game.onFrame = this.onFrame;
+
 	this.viewGroup = new Kinetic.Group({
 	});
 	this.viewBgGroup = new Kinetic.Group({
@@ -71,7 +72,7 @@ gameMenu.prototype.navigate = function(items) {
 			this.setFill(game.ui.color.control);
 			game.getLayer(0).draw();
 		});
-		viewRect.on('click', function() {
+		viewRect.on('click tap', function() {
 			if (this.menuItem.event) {
 				this.menuItem.event(this.menu);
 				this.menu.viewGroup.removeChildren();

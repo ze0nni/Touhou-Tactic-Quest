@@ -67,7 +67,7 @@ gensokyoMap.prototype.insertWayPoint = function(point, struct) {
 			});
 		});
 		var menu=this;
-		viewPoint.on('click', function() {
+		viewPoint.on('click tap', function() {
 			menu.remove();
 			if (this.mapPointName=='root') {
 				new levelMenu();
