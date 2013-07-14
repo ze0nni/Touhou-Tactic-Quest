@@ -3,3 +3,12 @@ margin:0;
 padding:0;
 background-color:#fff;
 }
+
+#game-dispay{
+position:fixed;
+left:0;
+top:0;
+}
+
+.kineticjs-content canvas{
+}
