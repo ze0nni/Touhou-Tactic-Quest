@@ -1,0 +1,3 @@
+windows.cfg
+tutor.cfg
+area.cfg
