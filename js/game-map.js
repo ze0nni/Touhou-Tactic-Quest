@@ -44,6 +44,15 @@ function gameMap(p1, p2) {
 	this.getActivePlayer = function() {
 		return this.players[this.playerTurn];
 	}
+
+	this._script = new ScriptMachine({
+		_map: this
+	});
+
+	window.SCR = this._script;
+	window.MAP = this;
+	
+	this.initScript(this._script);
 }
 
 gameMap.prototype.isEventQueueEmpty = function() {
@@ -107,7 +116,6 @@ gameMap.prototype.setSize = function(w, h) {
  */
 gameMap.prototype.generateMap = function(seed) {
 	var x, y;
-	console.log('todo: generateMap');
 	for (var i=0; i<this.height-1; i++) {
 		x = Math.floor(Math.random()*this.width);
 		y = Math.floor(Math.random()*this.height);
@@ -439,12 +447,14 @@ gameMap.prototype.cellClick = function(x, y) {
 			this.setFill(game.ui.color.hover);
 			if (this.menuItemIndex==menuArrow.menuItemIndex)
 				menuArrow.setFill(game.ui.color.hover);
+			game.getLayer(2).draw();
 
 		});
 		item.viewRect.on('mouseout touchend', function() {
 			this.setFill('');
 			if (this.menuItemIndex==menuArrow.menuItemIndex)
 				menuArrow.setFill(game.ui.color.control);
+			game.getLayer(2).draw();
 		});
 		var itemHandler;
 		switch (act[i]) {
@@ -548,7 +558,7 @@ function mapCellCheck(char, cell) {
 	if (cell.char && cell.char != char && cell.char.player != char.player) {
 		var charDist = Math.floor(Math.sqrt(Math.pow(cell.x-char.cell.x, 2) + Math.pow(cell.y-char.cell.y,2)));
 		for (var x in [1,2]) {
-			var dist = (characterGetAttr(char, 'dist'+(parseInt(x)+1),0))+1;
+			var dist = (characterBase.getAttr(char, 'dist'+(parseInt(x)+1),0))+1;
 				if (dist>=charDist){
 					if (x==0 || char.power>=3)
 						act.push('att'+(parseInt(x)+1));	
@@ -618,7 +628,7 @@ gameMap.prototype.copyCellsState = function(cells, nowaypoints) {
 				x:j,
 				y:i
 			});
-			characterGetState(c.char, out);
+			characterBase.cloneState(c.char, out);
 		}
 	}
 	return out;
@@ -655,8 +665,7 @@ gameMap.prototype.calcStateEfficiency = function(cells) {
 		for (var j in cells[i]) {
 			if ((c=cells[i][j])&& (char=c.char)) {
 				eff = out[char.player.index];
-				//getExpAmmount() переделать на функцю
-				f = characterGetExpAmmount(char)/char.character.hp*char.hp;
+				f = characterBase.getExpAmmount(char)/char.character.hp*char.hp;
 				eff.pow += f;
 				chars.push({char: char, f:f});
 			}
@@ -696,3 +705,63 @@ gameMap.prototype.calcStateEfficiency = function(cells) {
 	return out;
 
 }
+
+// ========================================================
+// Init Scripts
+
+gameMap.prototype.initScript = function(scr) {
+
+// chars
+scr.registerSub('addHp', function() {
+	var val = this.pop();
+	var char = this.pop();
+	char.addHp(val);
+});
+
+
+scr.registerSub('addExp', function() {
+	var val = this.pop();
+	var char = this.pop();
+	char.addExp(val);
+});
+
+scr.registerSub('addPower', function() {
+	var val = this.pop();
+	var char = this.pop();
+	char.addPower(val);
+});
+
+
+scr.registerSub('levelUp', function() {
+	var char = this.pop();
+	char.levelUp();
+});
+
+// Test
+
+scr.registerSub('attack1Test', function() {
+
+});
+
+scr.registerSub('attack2Test', function() {
+
+});
+
+// eventQueue
+
+/** переход хода */
+scr.registerSub('endTurn', function() {
+	game.events.doNextTurn();
+});
+
+/** обрывает текущую цепочку событий */
+scr.registerSub('breakTurn', function() {
+
+});
+
+/** добавляет событие в цепочку событий */
+scr.registerSub('appendEvent', function() {
+
+});
+
+};

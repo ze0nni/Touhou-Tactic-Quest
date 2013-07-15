@@ -1,4 +1,6 @@
-function gameMenu(items) {
+(function () {
+
+window.gameMenu = function(items) {
 	items = items||[
 		{title: 'new game', event: function(menu) {
 			menu.remove();
@@ -9,6 +11,11 @@ function gameMenu(items) {
 		{title: 'continue', event: function(menu) {
 			menu.remove();
 			game.continueGame();
+		}},
+		{title: 'Language', event: function(menu) {
+			chooseLocation("", function() {
+				new gameMenu();
+			});
 		}},
 	];
 	//
@@ -73,10 +80,12 @@ gameMenu.prototype.navigate = function(items) {
 			game.getLayer(0).draw();
 		});
 		viewRect.on('click tap', function() {
-			if (this.menuItem.event) {
-				this.menuItem.event(this.menu);
+			if (	this.menuItem.event
+				&& this.menuItem.event(this.menu)) {
+
 				this.menu.viewGroup.removeChildren();
 				game.getLayer(0).draw();
+				
 			}
 		});
 
@@ -102,3 +111,4 @@ gameMenu.prototype.onFrame = function() {
 
 }
 
+})();

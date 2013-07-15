@@ -66,7 +66,7 @@
 				for (var x =cell.x-1; x<=cell.x+1; x++) {
 					if (char.cells[y] && char.cells[y][x] && (c=char.cells[y][x].char)) {
 						//чем ниже здоровье у персонажа, тем выше эффективность
-						f += (((c.character.hp-c.hp)/addHp)*characterGetExpAmmount(c)) *
+						f += (((c.character.hp-c.hp)/addHp)*characterBase.getExpAmmount(c)) *
 								//Как бы проверка, что бы не лечить врагов
 								char.player.index!=c.player.index?1:-1;
 						if (c.addHp){

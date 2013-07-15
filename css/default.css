@@ -12,3 +12,40 @@ top:0;
 
 .kineticjs-content canvas{
 }
+
+#ibox_overlay {
+background-color: #444;
+opacity:0.4;
+font-size:2em;
+}
+
+#ibox_wrapper {
+border-radius:8px;
+}
+
+#ibox_content p {
+font-size:1.2em;
+text-indent:1em;
+}
+
+#ibox_footer_wrapper a {
+background-color:#f88;
+}
+
+/* =============================== */
+
+#char-attributes {
+list-style-type:none;
+}
+
+#char-attributes li {
+border-bottom:solid 1px #ccc;
+}
+
+#char-attributes .attr {
+text-align:right;
+}
+
+#char-attributes .value {
+padding-left:1em;
+}

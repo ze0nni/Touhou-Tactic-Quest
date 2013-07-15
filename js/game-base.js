@@ -1,42 +1,3 @@
-/**
- * Подключает модулю aSRC к текущей странице
- */
-function require(src, onload) {
-    var oTarget = document.getElementsByTagName('script').item(0);
-    var oScript;
-    if (window.execScript || window.opera &&
-            !window.opera.version) {
-        oScript = oTarget;
-    } else {
-        oScript = document.createElement('script');
-        oScript.setAttribute('type', 'text/javascript');
-        oScript.setAttribute('charset',
-                             oTarget.getAttribute('charset'));       
-        oTarget.parentNode.replaceChild(oScript, oTarget);
-    };
-    oScript.async = true;
-    oScript.onload = function() {
-    	console.debug('load ', src);
-    	onload(true); };
-    oScript.onerror = function(error) { onload(false, error); };
-    oScript.src = src;
-}
-
-function requireMulti(src, callback) {
-	var lost = src.length;
-	for (var x in src) {
-		require(src[x], (function(result, error) {
-			if (result) {
-				lost--;
-				if (lost==0) callback(true);
-			} else {
-				callback(false, error);
-				callback=undefined;
-			}
-		}).bind(src[x]));
-	}
-}
-
 loadingStatus = true;
 
 function startLoading(status) {
@@ -54,6 +15,7 @@ function endLoading() {
 }
 
 function nextTip() {
+	return;
 	var index = Math.floor(Math.random()*localization.tips.length)
 	$('#status-text').html(
 		'Совет #' + (index+1) + '<br />'+
@@ -69,7 +31,7 @@ if (typeof game==='undefined') {
 
 game.ui = {
 	size: {
-		actMenuHeght:32,
+		actMenuHeght:24,
 		actMenuWidth:140
 	},
 	color : {
@@ -91,19 +53,96 @@ game.ui = {
 	}
 }
 
+// ========================================================
+
 function format(f) {
+	if (typeof localization === 'undefined') {
+		return f;
+	}
 	return localization[f]||f;
+}
+
+// ========================================================
+
+game.tutor = function (act) {
+	if (localization['tutor_'+act]) {
+		game.dialogURL('./data/'+localization['tutor_'+act]);
+		localization['tutor_'+act] = undefined;
+	}
+}
+
+game.dialogURL = function(url) {
+	$.ajax({
+		'url': url,
+		'error': function(e) {
+			game.dialog('#icon error\n' + 
+				'Error load url');
+		},
+		'success': function(d) {
+			game.dialog(d);
+		}
+	});
+}
+
+game.dialog = function(data) {
+	var root = document.createElement('div');
+	var p = document.createElement('p');
+	var emptyP = true;
+
+	var title = "";
+	data = data.split(/[\r\n]+/);
+	for (var i  in  data) {
+		var ln = data[i].trim();
+		if (ln.length == 0) {
+			if (!emptyP) {
+				root.appendChild(p);
+				p = document.createElement('p');
+				root.appendChild(p);
+				emptyP = true;
+			}
+			continue;
+		}
+		if (ln[0] == '#') {
+			root.appendChild(game.getDefineDOM(ln));
+		} else {
+			emptyP = false;
+			p.innerHTML += ln + ' ';
+		}
+	}
+	iBox.show(root, title);
+}
+
+game.getDefineDOM = function(def) {
+	var dom = document.createElement('div');
+	dom.innerHTML = def;
+
+	def = def.split(/\s+/);
+	switch (def[0]) {
+	case '#icon': {
+		dom = document.createElement('img');
+		dom.src = './data/'
+		break;
+	}
+	}
+
+	return dom;
 }
 
 game.init = function(parent, width, height) {
 	//загружаем дополнительные модули
-	//requireMulti([
-	//	'./js/game-map.js',
-	//	'./js/game-chars.js',
-	//	'./js/game-player.js',
-	//	'./js/game-events.js'
-	//	],
-	//function() {
+	Unit('./js/game-base.js',
+		[
+		"./js/game-chars.js",
+		"./js/game-events.js",
+		"./js/game-map.js",
+		"./js/game-player.js",
+		"./js/game-menu.js",
+		"./js/game-levelmenu.js",
+		"./js/game-bonus.js",
+		"./js/game-gensokyoMap.js",
+		"./js/game-script.js"
+		],
+	function() {
 		//Создаем объект Stage для вывода графики
 		game.kineticStage = new Kinetic.Stage({
 			container: parent,
@@ -135,8 +174,8 @@ game.init = function(parent, width, height) {
 			
 			endLoading();
 		});
-	//});
-	game.initAudio();
+		game.initAudio();
+	});
 }
 
 game.onFrame = undefined;
@@ -230,7 +269,7 @@ game.saveSlot = function() {
 //загружаем из локального хранилищa
 game.loadSlot = function() {
 	if (!localStorage) {
-		onfirst('no localStorage');
+		game.tutor('no localStorage');
 		return;
 	}
 	if (!localStorage.chars) return;
@@ -346,14 +385,14 @@ game.startBattle = function(mapData, mapName) {
 		for (var i in mapData.bonus) {
 			if (game.savesSlot.bonus.indexOf(mapData.bonus[i])==-1) {
 				game.savesSlot.bonus.push(mapData.bonus[i]);
-				onfirst(mapData.bonus[i]);
+				game.tutor(mapData.bonus[i]);
 			}
 		}
 		//обновляем партию
 		game.savesSlot.chars=[];
 		for (var i in game.map.players[0].chars) {
 			game.savesSlot.chars.push(
-				characterGetState(game.map.players[0].chars[i])
+				characterBase.cloneState(game.map.players[0].chars[i])
 			);
 		}
 		//деньги-деньги-деньги
@@ -419,7 +458,7 @@ game.startBattle = function(mapData, mapName) {
 		};
 		img.src = 'i/bg/'+mapData.background+'.jpg';
 	}
-	onfirst(mapName);
+	game.tutor(mapName);
 	game.map.nextTurn();
 }
 
@@ -446,3 +485,62 @@ function createTileAtimation(tiles, w, h) {
 	return out;
 }
 
+// ========================================================
+
+window.ResManager.setExtType('config', 'cfg');
+
+window.ResManager.setResourceLoader('config', function(r, onRLoad, onRError) {
+	var xmlhttp = window.ResManager.getXMLHTTP();
+	xmlhttp.onload = function() {
+		var text = xmlhttp.responseText;
+		onRLoad(r.uri, r.alias, loadResData(text));
+	}
+	xmlhttp.onerror = function(e) {
+		onRError(r.uri, e);
+	}
+	xmlhttp.open('GET', r.uri, true);
+	xmlhttp.send(null);
+});
+
+function loadResData(data) {
+	var res = {root:{}, sectors: {}};
+	var sector = res['root'];
+
+	data = data.split(/[\r\n]+/);
+	var i = 0;
+	while (i < data.length) {
+		var args;
+		args = data[i].match(/\[\s*(.+?)\s*\]/);
+		if (args !== null) {
+			sector = res.sectors[args[1]]||{};
+			res.sectors[args[1]] = sector;
+			i++;
+			continue;
+		}
+		
+		args = data[i].match(/([^=]+)=\s*(.*)\s*$/);
+		if (args !== null) {
+			if (args[2] === '###') {
+				var mline = "";
+				do {
+					i++;
+					var ln = data[i];
+					if (ln.trimRight() === '###' || ln === undefined) {
+						sector[args[1]] = mline;
+						break;
+					} else {
+						mline += ln + '\n';
+					}
+				} while(true);
+				continue;
+			} else {
+				sector[args[1]] = args[2];
+				i++;
+			}
+			continue;
+		}
+
+		i++;
+	}
+	return res;
+}

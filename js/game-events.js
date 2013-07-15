@@ -64,13 +64,13 @@ game.events.doEvent = function(char, event, x, y) {
 game.eventHandlers.doevent = function(e) {
 	switch (e.event) {
 	case 'att1':
-		personDoAttack(e.char, e.char.cells[e.y][e.x].char, 1);
+		characterBase.doAttack(e.char, e.char.cells[e.y][e.x].char, 1);
 		break;
 	case 'att2':
-		personDoAttack(e.char, e.char.cells[e.y][e.x].char, 2);
+		characterBase.doAttack(e.char, e.char.cells[e.y][e.x].char, 2);
 		break;
 	default:
-		personDoAction(e.char, e.char.cells[e.y][e.x], e.event);
+		characterBase.doAction(e.char, e.char.cells[e.y][e.x], e.event);
 		break;
 	}
 	return true;
@@ -137,7 +137,7 @@ game.eventHandlers.cputurn = function(e) {
 		if (cell) {
 			var state = game.map.copyCellsState(undefined, true);
 			var char = state[e.char.cell.y][e.char.cell.x].char;
-			characterChangeCell(char, cell.x, cell.y);
+			characterBase.changeCell(char, cell.x, cell.y);
 			//совершаем все действия для которые доступны из данной клетки
 			try {
 			for (var i in state) {
@@ -155,9 +155,9 @@ game.eventHandlers.cputurn = function(e) {
 							for (var ax in act) {
 								var f=0;
 								switch (act[ax]) {
-									case 'att1':f=personDoAttack(subState[cell.y][cell.x].char, subState[i][j].char, 1, true);  break;
-									case 'att2':f=personDoAttack(subState[cell.y][cell.x].char, subState[i][j].char, 2, true);  break;
-									default: f=personDoAction(subState[cell.y][cell.x].char, subState[i][j], act[ax], true); break;
+									case 'att1':f=characterBase.doAttack(subState[cell.y][cell.x].char, subState[i][j].char, 1, true);  break;
+									case 'att2':f=characterBase.doAttack(subState[cell.y][cell.x].char, subState[i][j].char, 2, true);  break;
+									default: f=characterBase.doAction(subState[cell.y][cell.x].char, subState[i][j], act[ax], true); break;
 								}
 								console.log(act[ax], f);
 								if (!e.bestf || e.bestf < f) {
@@ -172,7 +172,7 @@ game.eventHandlers.cputurn = function(e) {
 				}
 			}
 			}catch (exc) {
-				console.debug(exc);
+				console.error(exc);
 			}
 			var f = Math.abs(cell.x-e.targetChar.cell.x) + Math.abs(cell.y-e.targetChar.cell.y);
 			if (e.targetCharLen > f || (e.targetCharLen==(f) && Math.random()<0.1)) {

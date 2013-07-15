@@ -1,6 +1,6 @@
+(function () {
 
-
-function levelMenu() {
+window.levelMenu =  function() {
 	game.onFrame = this.onFrame;
 	this.viewGroup = new Kinetic.Group({
 	});
@@ -25,6 +25,8 @@ function levelMenu() {
 		
 	}
 	this.updateView();
+	//туториал
+	game.tutor('shop');
 }
 
 levelMenu.prototype.updateView = function() {
@@ -111,6 +113,7 @@ levelMenu.prototype.updateView = function() {
 			140, 90);
 		var char;
 		if (!(char=game.savesSlot.chars[i])) continue;
+		slot.char = char;
 		slot.sprite = new Kinetic.Sprite({
 			listening: false,
 			image: char.base.sprite.image,
@@ -161,6 +164,11 @@ levelMenu.prototype.updateView = function() {
 			this.setFill('');
 			game.getLayer(0).draw();
 		});
+		(function(char) {
+		slot.viewRect.on('click tap', function() {
+			characterBase.showCharInfoDialog(char);
+		});
+		})(char);
 
 		slot.viewGroup.add(slot.sprite);
 		slot.viewGroup.add(slot.viewTitle);
@@ -215,7 +223,7 @@ levelMenu.prototype.createItemSlot = function(slot, x, y, width, height, text) {
 			alpha: 0.8,
 			fill: game.ui.color.control,
 			stroke: game.ui.color.hover,
-			shadow: game.ui.shadow
+			//shadow: game.ui.shadow
 		});
 		slot.viewRect.slot = slot;
 		slot.viewRect.on('mouseover touchstart', function(){
@@ -263,4 +271,8 @@ levelMenu.prototype.setMoney = function(a) {
 	game.getLayer(0).draw();
 }
 
+// ==================================================================
 
+// ==================================================================
+
+})();

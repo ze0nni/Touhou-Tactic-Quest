@@ -1,9 +1,13 @@
+(function () {
+
+'use strick';
+
 /**
  * Базовые характеристики игрового персонажа
  *
  * @param {url} адрес для загрузки данных
  */
-function characterBase(url, ready) {
+window.characterBase = function(url, ready) {
 	var cdata =$.ajax({
 		url: url,
 		dataType: 'text',
@@ -11,6 +15,7 @@ function characterBase(url, ready) {
 		async: false
 		});
 	var cobj = eval('('+cdata.responseText+')');
+	
 	//копируем данные из cobj
 	this.data = {};
 	for (var x in cobj) {
@@ -38,12 +43,18 @@ function characterBase(url, ready) {
 		}
 	}
 }
+
 /**
  * Игровой персонаж
  */
-function character(base, player, ready, nosprite) {
+window.character = function(base, player, ready, nosprite) {
 	this.base = base;
 	this.player = player;
+
+	this._inventory = []; //Инвентарь
+	this._equip = []; //Надетые на персонажа предметы
+	this._buffs =  []; //баффы и эффекты
+
 	//иногда спрайты не нужны
 	if (!nosprite) {
 		//анимация по умолчанию
@@ -179,15 +190,16 @@ function character(base, player, ready, nosprite) {
 	this.setPower(0);
 	this.setLevel(0);
 	this.setExp(0);
-	if (ready) (ready.bind(this))();
+	if (ready) {
+		ready.apply(this);
+	}
 }
 
 
 /**
  * Делает копию текущего характера и помещает его на поле cells
- * объек служит для расчет 
  */
-characterGetState = function(char, cells) {
+window.characterBase.cloneState  = function(char, cells) {
 	if (!char) return undefined;
 	var c = {};
 	c.level = char.level;
@@ -205,11 +217,18 @@ characterGetState = function(char, cells) {
 	return c;
 }
 
+
+window.characterBase.changeCell = function(char, x, y) {
+	if (char.cell) char.cell.char = undefined;
+	char.cell = char.cells[y][x];
+	char.cell.char = char;
+}
+
 character.prototype.setPower = function(pow) {
 	pow = pow||0;
 	pow = Math.min(5, pow);
 	if (pow<0) pow = 0;
-	if (pow>=3) onfirst('3power');
+	if (pow>=3) game.tutor('3power');
 	this.power = pow;
 	for (var i in this.viewPower)
 		if (i<=(pow-1))
@@ -264,7 +283,7 @@ character.prototype.getNearCell = function(cells, x, y, f) {
 	if (cell=cells[y][x-1]) if (f(v, cell||{})) return cell;
 	if (cell=cells[y+1]) if (f(v, cell[x]||{})) return cell[x];
 	if (cell=cells[y-1]) if (f(v, cell[x]||{})) return cell[x];
-	return 'lol'
+	return null;
 }
 
 /**
@@ -317,19 +336,18 @@ character.prototype.searchWay = function(cells) {
 	this.searchWayRec(cells, this.cell.x, this.cell.y, (this.waypoints||0)+1);
 }
 
-function characterChangeCell(char, x, y) {
-	if (char.cell) char.cell.char = undefined;
-	char.cell = char.cells[y][x];
-	char.cell.char = char;
-}
 /**
  * обновляет информацию на карте о передвижении персонажа
  */
 character.prototype.changeCell = function(x, y, cells) {
 	cells = cells||game.map.cells;
+	if (this.cell && this.cell.x == x && this.cell.y == y) {
+		return;
+	}
 	if (this.cell) this.cell.char = undefined;
 	this.cell = cells[y][x];
 	this.cell.char = this;
+	// todo: notifi char move
 }
 
 character.prototype.setXY = function(x, y) {
@@ -375,7 +393,7 @@ character.prototype.die = function() {
 	if (this.doDie) this.doDie();
 }
 
-function characterGetAttr(char, attr, def) {
+window.characterBase.getAttr = function(char, attr, def) {
 	return	char.character[attr]||def;
 }
 
@@ -415,7 +433,7 @@ character.prototype.tryAttack = function(person, attack) {
  * @param {а} атака 1 или 2
  * @param {fast} в этом случае изменение не происходит, но возвращается числовое значение эффективность хода
  */
-function personDoAttackRaw(char, person, a, fast) {
+window.characterBase.doAttackRaw = function(char, person, a, fast) {
 	//Для альтернативной атаки отнимаем три энергии
 	if (a==2) {
 		char.power = char.power-3;
@@ -431,16 +449,16 @@ function personDoAttackRaw(char, person, a, fast) {
 			person.doAnimation('block');
 	} else {
 		//если удалась — считаем повреждение
-		var dmg = characterGetAttr(char, 'dmg'+a, [char.l, char.l]);
+		var dmg = characterBase.getAttr(char, 'dmg'+a, [char.l, char.l]);
 		//для быстрой атаки возвращаем эффективность
 		if (fast) {
 			var persMod = char.player.index==person.player.index?-1:1;
 			if (person.hp<=dmg[1]) {
 				//если персонаж умирает
-				return dmg[1]/person.hp*characterGetExpAmmount(person)*2*persMod;
+				return dmg[1]/person.hp*characterBase.getExpAmmount(person)*2*persMod;
 			} else {
 				//если нет
-				return dmg[1]/person.hp*characterGetExpAmmount(person)*persMod;
+				return dmg[1]/person.hp*characterBase.getExpAmmount(person)*persMod;
 			}
 		}
 		//для обычной атаки расчитываем наносимое повреждение
@@ -465,47 +483,48 @@ function personDoAttackRaw(char, person, a, fast) {
  * @param {а} атака 1 или 2
  * @param {fast} в этом случае изменение не происходит, но возвращается числовое значение эффективность хода
  */
-function personDoAttack(char, person, a, fast) {
+window.characterBase.doAttack = function(char, person, a, fast) {
 	//проверяем, есть ли перехватчик
 	var attHandler;
 	if (attHandler=char.base.data['doAttack'+a]) {
+		console.log(char);
 		return attHandler(char, person, fast);
 	}
-	return personDoAttackRaw(char, person, a, fast);
+	return characterBase.doAttackRaw(char, person, a, fast);
 }
 
-function personDoAction(char, cell, act, fast) {
+window.characterBase.doAction = function(char, cell, act, fast) {
 	var actHandler;
 	if (actHandler=char.base.data.doAction) {
 		return actHandler(char, cell, act, fast);
 	}
-	console.log(char.base.name, 'have not doAction handler');
+	console.debug(char.base.name, 'have not doAction handler');
 	return 0;
 }
 
 character.prototype.doAttack1 = function(person) {
-	return personDoAttack(this, person, 1);
+	return characterBase.doAttack(this, person, 1);
 }
 
 character.prototype.doAttack2 = function(person) {
-	return personDoAttack(this, person, 2);
+	return characterBase.doAttack(this, person, 2);
 }
 
-function characterGetExpAmmount(char) {
+window.characterBase.getExpAmmount = function(char) {
 	var l = char.level;
-	return (characterGetAttr(char, 'hp', l) + 
-	 	characterGetAttr(char, 'att1', l) +
-	 	characterGetAttr(char, 'att2', l) +
-	 	characterGetAttr(char, 'def', l) +
-	 	characterGetAttr(char, 'dmg1', [l,l])[1] +
-	 	characterGetAttr(char, 'dmg', [l,l])[1])/5
+	return (characterBase.getAttr(char, 'hp', l) + 
+	 	characterBase.getAttr(char, 'att1', l) +
+	 	characterBase.getAttr(char, 'att2', l) +
+	 	characterBase.getAttr(char, 'def', l) +
+	 	characterBase.getAttr(char, 'dmg1', [l,l])[1] +
+	 	characterBase.getAttr(char, 'dmg', [l,l])[1])/5
 }
 
 /**
  * Сколько очков опыта дают за убийство персонажа
  */
 character.prototype.getExpAmmount = function() {
-	return characterGetExpAmmount(this);
+	return characterBase.getExpAmmount(this);
 }
 //
 character.prototype.setHp = function(hp, dieCallback) {
@@ -580,3 +599,42 @@ character.prototype.addExp = function(exp) {
 	this.setExp(this.exp+exp);
 }
 
+// ========================================================
+
+window.characterBase.showCharInfoDialog = function(char) {
+	var root = document.createElement('div');
+	root.id="char-attributes";
+	
+	var img = document.createElement('img');
+	root.appendChild(img);
+	
+	var table = document.createElement('table');
+	root.appendChild(table);
+
+	for (var attr in char.character) {
+		var val = char.character[attr];
+		table.appendChild(
+			getAttrElement(attr, val));
+	}
+
+	iBox.show(root, char.base.data.title);
+}
+
+function getAttrElement(attr, val) {
+	var element = document.createElement('tr');
+	
+	var name = document.createElement('td');
+	name.innerHTML = format('attr_'+attr);
+	name.className = "attr";
+
+	var value = document.createElement('td');
+	value.innerHTML = val;
+	value.className = "value";
+
+	element.appendChild(name);
+	element.appendChild(value);
+
+	return element;
+}
+
+})();
